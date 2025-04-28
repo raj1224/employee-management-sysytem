@@ -10,18 +10,30 @@ import { AuthContext } from './context/AuthProvider'
 
 const App = () => {
   const [user, setUser] = useState(null)
-  const authData = useContext(AuthContext)
-  // console.log(authData);
+  const [loggedInUserData, setloggedInUserData] = useState(null)
+  const [userData,setUserData] = useContext(AuthContext)
+
   useEffect(() => {
-    if(authData){
-      const loggedInUser = localStorage.getItem('loggedInUser')
-      if (loggedInUser) {
-        setUser(loggedInUser.role)
-      } 
+    const loggedInUser = localStorage.getItem('loggedInUser')
+    if (loggedInUser) {
+      const userData = JSON.parse(loggedInUser)
+      setUser(userData.role)
+      setloggedInUserData(userData.data)
+
     }
+  },[])
+  
+  // console.log(authData);
+  // useEffect(() => {
+  //   if(authData){
+  //     const loggedInUser = localStorage.getItem('loggedInUser')
+  //     if (loggedInUser) {
+  //       setUser(loggedInUser.role)
+  //     } 
+  //   }
   
     
-  }, [authData])
+  // }, [authData])
   
   
   
@@ -30,13 +42,20 @@ const App = () => {
 
     
     if(email=='admin@me.com' && password == '123'){
-      console.log("this is Admin");
+      // console.log("this is Admin");
       setUser('admin')
       localStorage.setItem('loggedInUser', JSON.stringify({role:'admin'}))
-    }else if(authData && authData.employees.find((e)=>email=== e.email && password == e.password)){
-      console.log("this is user");
-      setUser('employee')
-      localStorage.setItem('loggedInUser', JSON.stringify({role:'employee'}))
+    }else if(userData  ){
+      const employee = userData.find((e)=>email=== e.email && password == e.password)
+      if(employee){
+        // console.log("this is employee");
+        setUser('employee')
+        setloggedInUserData(employee)
+        localStorage.setItem('loggedInUser', JSON.stringify({role:'employee', data:employee}))
+      }
+      // console.log("this is user");
+      // setUser('employee')
+      // localStorage.setItem('loggedInUser', JSON.stringify({role:'employee'}))
 
     }else{
       alert("Invalid Credentials")
@@ -50,7 +69,7 @@ const App = () => {
     <>
     {/* <Login/> */}
    {!user ? <Login handleLogin={handleLogin}/> : ''}
-   {user == 'admin' ? <Admindashboard/> : <EmployeDashboard/>} 
+   {user == 'admin' ? <Admindashboard changeUser={setUser} /> : (user == 'employee' ? <EmployeDashboard changeUser={setLocalStorage} data ={loggedInUserData}/> : null)} 
     </>
   )
 }
